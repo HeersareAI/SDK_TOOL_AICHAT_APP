@@ -81,6 +81,14 @@ export default async function DashboardPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Link
+            href="/chat"
+            className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:scale-105"
+          >
+            <div className="text-3xl mb-3">💬</div>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">AI Chat</h3>
+            <p className="text-gray-600">Start a conversation with the assistant</p>
+          </Link>
+          <Link
             href="/user"
             className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition transform hover:scale-105"
           >

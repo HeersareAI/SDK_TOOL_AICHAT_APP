@@ -1,12 +1,76 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, UIMessage, convertToModelMessages, tool  } from "ai";
+import { auth } from "@/lib/auth";
+import { conversation, message } from "@/auth-schema";
+import { db } from "@/db/drizzle";
+import { and, eq } from "drizzle-orm";
+import { headers } from "next/headers";
+import { streamText, type UIMessage, convertToModelMessages, tool } from "ai";
 import { z } from "zod";
 
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = (await req.json()) as {
+      conversationId?: string;
+      messages?: UIMessage[];
+    };
+    const { conversationId, messages } = body;
+
+    if (!conversationId || !Array.isArray(messages) || messages.length === 0) {
+      return Response.json({ error: "Invalid chat request" }, { status: 400 });
+    }
+
+    const [existingConversation] = await db
+      .select({ id: conversation.id })
+      .from(conversation)
+      .where(
+        and(
+          eq(conversation.id, conversationId),
+          eq(conversation.userId, session.user.id),
+        ),
+      )
+      .limit(1);
+
+    if (!existingConversation) {
+      const firstText = messages
+        .flatMap((chatMessage) => chatMessage.parts)
+        .find((part) => part.type === "text")?.text;
+
+      await db.insert(conversation).values({
+        id: conversationId,
+        userId: session.user.id,
+        title: firstText?.slice(0, 80) || "New conversation",
+      });
+    }
+
+    const userMessage = messages.at(-1);
+
+    if (!userMessage || userMessage.role !== "user") {
+      return Response.json({ error: "A user message is required" }, { status: 400 });
+    }
+
+    await db
+      .insert(message)
+      .values({
+        id: userMessage.id,
+        conversationId,
+        role: userMessage.role,
+        parts: userMessage.parts,
+        metadata: userMessage.metadata as Record<string, unknown> | undefined,
+      })
+      .onConflictDoNothing();
+
+    await db
+      .update(conversation)
+      .set({ updatedAt: new Date() })
+      .where(eq(conversation.id, conversationId));
 
     const result = streamText({
       model: openai("gpt-4o"),
@@ -60,7 +124,31 @@ export async function POST(req: Request) {
       },
     });
 
-    return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse({
+      originalMessages: messages,
+      generateMessageId: () => crypto.randomUUID(),
+      onEnd: async ({ responseMessage }) => {
+        if (responseMessage.parts.length === 0) return;
+
+        await db
+          .insert(message)
+          .values({
+            id: responseMessage.id,
+            conversationId,
+            role: responseMessage.role,
+            parts: responseMessage.parts,
+            metadata: responseMessage.metadata as
+              | Record<string, unknown>
+              | undefined,
+          })
+          .onConflictDoNothing();
+
+        await db
+          .update(conversation)
+          .set({ updatedAt: new Date() })
+          .where(eq(conversation.id, conversationId));
+      },
+    });
   } catch (error) {
     console.error("CHAT API ERROR:", error);
 

@@ -1,74 +1,56 @@
-'use client';
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
-import { useChat } from '@ai-sdk/react';
-import { useState } from 'react';
+export default async function HomePage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-export default function Chat() {
-  const [input, setInput] = useState('');
-  const { messages, sendMessage } = useChat();
+  if (session) {
+    redirect("/chat");
+  }
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header */}
-      <div className="text-center py-6 border-b">
-        <h1 className="text-3xl font-bold mb-2">AI SDK v5 Chat</h1>
-        <p className="text-gray-600">Streaming chat example</p>
-      </div>
+    <main className="relative grid min-h-screen place-items-center overflow-hidden bg-slate-950 px-6 py-16 text-white">
+      <div className="absolute left-1/2 top-0 h-96 w-96 -translate-x-1/2 rounded-full bg-blue-600/25 blur-3xl" />
+      <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-indigo-600/20 blur-3xl" />
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
-          {messages.map(message => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-md px-4 py-3 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-rose-500 text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
-              >
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case 'text':
-                      return <div key={i} className="whitespace-pre-wrap">{part.text}</div>;
-                  }
-                })}
-                
-              </div>
-            </div>
-          ))}
+      <section className="relative z-10 mx-auto max-w-2xl text-center">
+        <div className="mx-auto mb-7 grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-3xl shadow-xl shadow-blue-950/40">
+          ✦
         </div>
-      </div>
+        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-blue-300">
+          AI Chat Assistant
+        </p>
+        <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+          Your conversations, saved and ready.
+        </h1>
+        <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
+          Sign in to continue your conversations, or create an account to start
+          chatting with the assistant.
+        </p>
 
-      {/* Fixed Input at Bottom */}
-      <div className="border-t bg-white p-4">
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            sendMessage({ text: input });
-            setInput('');
-          }}
-          className="max-w-4xl mx-auto"
-        >
-          <div className="flex space-x-2">
-            <input
-              className="flex-1 p-3 border rounded-lg"
-              value={input}
-              placeholder="Say something..."
-              onChange={e => setInput(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="px-4 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600"
-            >
-              Send
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link
+            href="/signin"
+            className="rounded-xl bg-blue-600 px-7 py-3 font-semibold text-white shadow-lg shadow-blue-950/40 transition hover:bg-blue-500"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/signup"
+            className="rounded-xl border border-slate-600 bg-white/5 px-7 py-3 font-semibold text-white backdrop-blur transition hover:border-slate-400 hover:bg-white/10"
+          >
+            Create Account
+          </Link>
+        </div>
+
+        <p className="mt-6 text-sm text-slate-500">
+          An account is required before starting a chat.
+        </p>
+      </section>
+    </main>
   );
 }
