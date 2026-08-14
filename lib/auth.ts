@@ -16,6 +16,14 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["github", "google"],
+      requireLocalEmailVerified: false,
+      allowDifferentEmails: false,
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
