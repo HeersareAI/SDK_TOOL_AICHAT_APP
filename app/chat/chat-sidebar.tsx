@@ -164,9 +164,11 @@ export function ChatSidebar({
             <Link href="/dashboard" className="rounded-lg px-3 py-2 text-center text-xs text-slate-400 hover:bg-slate-900 hover:text-white">
               Dashboard
             </Link>
-            <Link href="/signout" className="rounded-lg px-3 py-2 text-center text-xs text-slate-400 hover:bg-slate-900 hover:text-white">
-              Sign out
-            </Link>
+            <form action="/signout" method="post">
+              <button type="submit" className="w-full rounded-lg px-3 py-2 text-center text-xs text-slate-400 hover:bg-slate-900 hover:text-white">
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
       </aside>

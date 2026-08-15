@@ -81,12 +81,14 @@ export default async function UserPage() {
           >
             Back to Home
           </Link>
-          <Link
-            href="/signout"
-            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-center"
-          >
-            Sign Out
-          </Link>
+          <form action="/signout" method="post" className="flex-1">
+            <button
+              type="submit"
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-center"
+            >
+              Sign Out
+            </button>
+          </form>
         </div>
       </div>
     </div>

@@ -21,12 +21,14 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <div className="flex items-center gap-4">
               <span className="text-gray-700">Welcome, {session.user.name || "User"}!</span>
-              <Link
-                href="/signout"
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-              >
-                Sign Out
-              </Link>
+              <form action="/signout" method="post">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  Sign Out
+                </button>
+              </form>
             </div>
           </div>
         </div>

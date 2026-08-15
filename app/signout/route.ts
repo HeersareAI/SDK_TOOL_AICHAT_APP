@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   const authResponse = await auth.api.signOut({
     headers: await headers(),
     asResponse: true,
