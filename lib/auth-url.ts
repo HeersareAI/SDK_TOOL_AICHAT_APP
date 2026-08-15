@@ -1,7 +1,10 @@
 const LOCAL_AUTH_ORIGIN = "http://localhost:3001";
 
 function parseOrigin(value: string | undefined) {
-  const normalized = value?.trim().replace(/^['"]|['"]$/g, "");
+  const normalized = value
+    ?.trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/^BETTER_AUTH_URL\s*=\s*/i, "");
   if (!normalized) return null;
 
   try {
