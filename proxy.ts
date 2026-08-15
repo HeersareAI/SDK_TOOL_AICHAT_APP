@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -18,9 +19,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Redirect unauthenticated users away from protected pages
+  // Validate protected routes against Better Auth instead of relying on the
+  // presence of a specifically named cookie.
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-    if (!isAuthenticated) {
+    const session = await auth.api.getSession({ headers: request.headers });
+
+    if (!session) {
       return NextResponse.redirect(new URL("/signin", request.url));
     }
   }
