@@ -1,3 +1,4 @@
+import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -6,7 +7,7 @@ const authRoutes = ["/signin", "/signup"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookie = request.cookies.get("better-auth.session_token")?.value;
+  const sessionCookie = getSessionCookie(request);
   const isAuthenticated = !!sessionCookie;
 
   // Redirect authenticated users away from auth pages
