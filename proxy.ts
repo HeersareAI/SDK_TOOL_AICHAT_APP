@@ -25,7 +25,9 @@ export async function proxy(request: NextRequest) {
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session) {
-      return NextResponse.redirect(new URL("/signin", request.url));
+      const signInURL = new URL("/signin", request.url);
+      signInURL.searchParams.set("reason", "proxy-session");
+      return NextResponse.redirect(signInURL);
     }
   }
 
