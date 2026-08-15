@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -19,14 +18,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Validate protected routes against Better Auth instead of relying on the
-  // presence of a specifically named cookie.
+  // Keep the proxy check lightweight. Each protected page performs the
+  // authoritative Better Auth session lookup before rendering private data.
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-    const session = await auth.api.getSession({ headers: request.headers });
-
-    if (!session) {
+    if (!isAuthenticated) {
       const signInURL = new URL("/signin", request.url);
-      signInURL.searchParams.set("reason", "proxy-session");
+      signInURL.searchParams.set("reason", "proxy-cookie");
       return NextResponse.redirect(signInURL);
     }
   }
