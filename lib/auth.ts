@@ -8,6 +8,12 @@ export const auth = betterAuth({
   baseURL: getServerAuthOrigin(),
   basePath: "/api/auth",
   secret: process.env.BETTER_AUTH_SECRET || "change-me",
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
   emailAndPassword: {
     enabled: true,
   },
