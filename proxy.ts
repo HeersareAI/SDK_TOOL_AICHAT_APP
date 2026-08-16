@@ -1,3 +1,4 @@
+import { getServerAuthOrigin } from "@/lib/auth-url";
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -7,6 +8,21 @@ const authRoutes = ["/signin", "/signup"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const canonicalOrigin = getServerAuthOrigin();
+  const canonicalURL = new URL(canonicalOrigin);
+
+  // OAuth providers require an exact callback origin. Send Vercel preview
+  // traffic to the configured production host before authentication starts.
+  if (
+    request.nextUrl.hostname.endsWith(".vercel.app") &&
+    canonicalURL.hostname !== request.nextUrl.hostname &&
+    canonicalURL.hostname !== "localhost"
+  ) {
+    return NextResponse.redirect(
+      new URL(`${pathname}${request.nextUrl.search}`, canonicalOrigin),
+    );
+  }
+
   const sessionCookie = getSessionCookie(request);
   const isAuthenticated = !!sessionCookie;
 
