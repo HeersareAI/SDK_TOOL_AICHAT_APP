@@ -17,6 +17,16 @@ export async function POST(req: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!process.env.OPENAI_API_KEY) {
+      return Response.json(
+        {
+          error:
+            "AI service is not configured. Add OPENAI_API_KEY to Vercel and redeploy.",
+        },
+        { status: 503 },
+      );
+    }
+
     const body = (await req.json()) as {
       conversationId?: string;
       messages?: UIMessage[];
@@ -123,6 +133,10 @@ export async function POST(req: Request) {
     return result.toUIMessageStreamResponse({
       originalMessages: messages,
       generateMessageId: () => crypto.randomUUID(),
+      onError: (streamError) => {
+        console.error("CHAT STREAM ERROR:", streamError);
+        return "The AI service could not generate a response. Check the OpenAI API key, project billing, and model access in Vercel.";
+      },
       onEnd: async ({ responseMessage }) => {
         if (responseMessage.parts.length === 0) return;
 
